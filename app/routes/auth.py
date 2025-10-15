@@ -1,33 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from jose import jwt
 from app.database import get_db
 from app.models.user import User
 from app.config import settings
-from pydantic import BaseModel, EmailStr
 
-router = APIRouter(prefix="/api/auth", tags=["Auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
+pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# ----- Schemas -----
 class UserCreate(BaseModel):
-    email: EmailStr
     username: str
+    email: EmailStr
     password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-# ----- Helpers -----
-def get_password_hash(password: str):
-    return pwd_context.hash(password)
-
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -35,29 +22,29 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
-# ----- Routes -----
-@router.post("/signup", response_model=Token)
+@router.post("/signup")
 def signup(payload: UserCreate, db: Session = Depends(get_db)):
+    # prevent duplicate
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    hashed_pw = get_password_hash(payload.password)
-    user = User(email=payload.email, username=payload.username, password_hash=hashed_pw)
+    hashed = pwd.hash(payload.password)
+    user = User(username=payload.username, email=payload.email, hashed_password=hashed)
     db.add(user)
     db.commit()
     db.refresh(user)
 
     token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    return {"user": {"id": user.id, "username": user.username, "email": user.email}, "access_token": token, "token_type": "bearer"}
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 def login(payload: UserCreate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
-    if not user or not verify_password(payload.password, user.password_hash):
+    db_user = db.query(User).filter(User.email == payload.email).first()
+    if not db_user or not pwd.verify(payload.password, db_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    token = create_access_token({"sub": db_user.email})
+    return {"user": {"id": db_user.id, "username": db_user.username, "email": db_user.email}, "access_token": token, "token_type": "bearer"}
 
 @router.get("/ping")
 def ping():
