@@ -50,6 +50,20 @@ def login(payload: UserCreate, db: Session = Depends(get_db)):
 def logout():
     return {"message": "Logged out successfully"}
 
+@router.post("/google")
+def google_oauth(db: Session = Depends(get_db)):
+    return {
+        "message": "Google OAuth not yet configured",
+        "instructions": "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env file"
+    }
+
+@router.post("/apple")
+def apple_oauth(db: Session = Depends(get_db)):
+    return {
+        "message": "Apple OAuth not yet configured",
+        "instructions": "Add APPLE_CLIENT_ID and APPLE_CLIENT_SECRET to .env file"
+    }
+
 @router.get("/ping")
 def ping():
     return {"msg": "auth alive"}
