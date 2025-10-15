@@ -46,6 +46,10 @@ def login(payload: UserCreate, db: Session = Depends(get_db)):
     token = create_access_token({"sub": db_user.email})
     return {"user": {"id": db_user.id, "username": db_user.username, "email": db_user.email}, "access_token": token, "token_type": "bearer"}
 
+@router.post("/logout")
+def logout():
+    return {"message": "Logged out successfully"}
+
 @router.get("/ping")
 def ping():
     return {"msg": "auth alive"}

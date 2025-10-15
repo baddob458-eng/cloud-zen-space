@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import auth, tools
+from app.routes import payments
 from app.config import settings
+from app.database import engine, Base
 
-app = FastAPI(title="N Cloud Backend (dev)", version="0.1")
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="N Cloud Backend", version="1.0")
 
 origins = [
     "http://localhost:3000",
@@ -22,6 +26,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(tools.router)
+app.include_router(payments.router)
 
 @app.get("/")
 def root():
