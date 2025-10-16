@@ -3,7 +3,7 @@ export default function Landing() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
         <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-          All your apps and AI tools on one screen—simple, private, <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">unstoppable</span>.
+          Where <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">precision</span> meets <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">performance</span>.
         </h1>
         <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
           Stop switching tabs. Stop losing focus. Stay in your flow.
